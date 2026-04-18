@@ -1,0 +1,13 @@
+years:
+  - 2026
+division: 3
+types:
+  - pitching
+  - batting
+output_dir: output/college-stats
+mode: incremental
+watch_list:
+  - Babson
+  - MIT
+max_wait_seconds: 8
+max_retries: 4

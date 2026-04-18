@@ -1,0 +1,29 @@
+Package: ncaaStatsSync
+Type: Package
+Title: Daily NCAA Stats Sync to JSON
+Version: 0.1.0
+Authors@R: c(
+    person(
+      given = "Pitch Tracker",
+      family = "Maintainers",
+      role = c("aut", "cre"),
+      email = "maintainers@example.com"
+    )
+  )
+Description: Fetches NCAA season-to-date leaderboard pages, parses batting and
+    pitching tables, and writes deterministic JSON snapshots with sync metadata.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends:
+    R (>= 4.1)
+Imports:
+    chromote,
+    collegebaseball,
+    dplyr,
+    jsonlite,
+    rvest,
+    stringr,
+    xml2,
+    yaml

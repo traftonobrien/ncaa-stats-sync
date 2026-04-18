@@ -1,0 +1,49 @@
+name: Sync NCAA Stats
+
+on:
+  schedule:
+    - cron: "0 11 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Sync mode"
+        required: false
+        default: "incremental"
+        type: choice
+        options: [incremental, full]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "4.3"
+
+      - name: Install dependencies
+        run: |
+          Rscript -e 'install.packages(c("remotes","chromote","collegebaseball","jsonlite","rvest","xml2","dplyr","stringr","yaml"), repos="https://cloud.r-project.org")'
+          Rscript -e 'remotes::install_local(".", dependencies = TRUE)'
+
+      - name: Run sync
+        run: |
+          cp inst/config/example.yml config.yml
+          Rscript scripts/sync_ncaa_stats.R --config config.yml --mode "${{ github.event.inputs.mode || 'incremental' }}"
+
+      - name: Commit output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet output/college-stats; then
+            echo "No stat changes"
+          else
+            git add output/college-stats
+            git commit -m "chore: sync NCAA stats $(date -u +%Y-%m-%d)"
+            git push
+          fi
