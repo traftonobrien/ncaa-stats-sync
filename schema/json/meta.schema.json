@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/traftonobrien/ncaa-stats-sync/blob/main/schema/json/meta.schema.json",
+  "title": "ncaaStatsSync meta.json",
+  "type": "object",
+  "required": ["synced_at", "source", "schema_version", "division", "years", "types", "mode", "results"],
+  "additionalProperties": true,
+  "properties": {
+    "synced_at": { "type": "string" },
+    "source": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "division": { "type": "integer" },
+    "years": { "type": "array", "items": { "type": "integer" } },
+    "types": { "type": "array", "items": { "type": "string" } },
+    "mode": { "type": "string" },
+    "write_team_stats": { "type": "boolean" },
+    "schema_manifest": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "file_checksums": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["sha256", "bytes"],
+        "properties": {
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "bytes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "results": { "type": "object" }
+  }
+}

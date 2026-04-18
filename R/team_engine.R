@@ -2,6 +2,10 @@
 #'
 #' Mirrors standard leaderboard semantics: full-roster sums plus optional qualified
 #' pitching (minimum IP) and qualified batting (minimum PA).
+#'
+#' @param df Team-level aggregate tibble.
+#' @param type One of `"pitching"` or `"batting"`.
+#' @noRd
 
 .add_team_context <- function(df, type = c("pitching", "batting")) {
   type <- match.arg(type)
@@ -28,6 +32,11 @@
   df
 }
 
+#' Aggregate team-level pitching stats from player rows.
+#'
+#' @param df Pitching player-level data frame.
+#' @returns Team-level pitching tibble.
+#' @export
 ncaa_aggregate_team_pitching <- function(df) {
   if (is.null(df) || nrow(df) == 0) {
     return(tibble::tibble())
@@ -64,6 +73,12 @@ ncaa_aggregate_team_pitching <- function(df) {
     .add_team_context("pitching")
 }
 
+#' Aggregate qualified team-level pitching stats.
+#'
+#' @param df Pitching player-level data frame.
+#' @param min_ip Minimum innings pitched to qualify a pitcher.
+#' @returns Team-level qualified pitching tibble.
+#' @export
 ncaa_aggregate_qualified_team_pitching <- function(df, min_ip = 5) {
   if (is.null(df) || nrow(df) == 0) {
     return(tibble::tibble())
@@ -88,7 +103,7 @@ ncaa_aggregate_qualified_team_pitching <- function(df, min_ip = 5) {
       .groups = "drop"
     ) |>
     dplyr::mutate(min_ip = min_ip_threshold) |>
-    dplyr::relocate(.data$min_ip, .after = .data$qualified_pitchers) |>
+    dplyr::relocate(min_ip, .after = dplyr::all_of("qualified_pitchers")) |>
     dplyr::mutate(
       era = dplyr::if_else(.data$ip_float > 0, 9 * .data$er / .data$ip_float, NA_real_),
       whip = dplyr::if_else(.data$ip_float > 0, (.data$h + .data$bb) / .data$ip_float, NA_real_),
@@ -100,6 +115,11 @@ ncaa_aggregate_qualified_team_pitching <- function(df, min_ip = 5) {
     .add_team_context("pitching")
 }
 
+#' Aggregate team-level batting stats from player rows.
+#'
+#' @param df Batting player-level data frame.
+#' @returns Team-level batting tibble.
+#' @export
 ncaa_aggregate_team_batting <- function(df) {
   if (is.null(df) || nrow(df) == 0) {
     return(tibble::tibble())
@@ -145,6 +165,12 @@ ncaa_aggregate_team_batting <- function(df) {
     .add_team_context("batting")
 }
 
+#' Aggregate qualified team-level batting stats.
+#'
+#' @param df Batting player-level data frame.
+#' @param min_pa Minimum plate appearances to qualify a hitter.
+#' @returns Team-level qualified batting tibble.
+#' @export
 ncaa_aggregate_qualified_team_batting <- function(df, min_pa = 15) {
   if (is.null(df) || nrow(df) == 0) {
     return(tibble::tibble())
@@ -166,6 +192,13 @@ ncaa_aggregate_qualified_team_batting <- function(df, min_pa = 15) {
 }
 
 #' Build full team stat bundle for one season from player-level frames.
+#'
+#' @param pitching_players Pitching player-level tibble.
+#' @param batting_players Batting player-level tibble.
+#' @param min_ip Minimum innings threshold for qualified pitchers.
+#' @param min_pa Minimum plate appearance threshold for qualified hitters.
+#' @returns List with team-level totals, qualified splits, and qualification rules.
+#' @export
 ncaa_build_team_stat_engine <- function(pitching_players, batting_players, min_ip = 5, min_pa = 15) {
   list(
     schema_version = "1.0",

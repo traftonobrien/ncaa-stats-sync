@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/traftonobrien/ncaa-stats-sync/blob/main/schema/json/teams-bundle.schema.json",
+  "title": "ncaaStatsSync teams bundle",
+  "type": "object",
+  "required": ["schema_version", "year", "division", "engine"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "string" },
+    "year": { "type": "integer" },
+    "division": { "type": "integer" },
+    "engine": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "pitching_teams": { "type": "array" },
+        "pitching_teams_qualified": { "type": "array" },
+        "batting_teams": { "type": "array" },
+        "batting_teams_qualified": { "type": "array" },
+        "qualification": { "type": "object" }
+      }
+    }
+  }
+}

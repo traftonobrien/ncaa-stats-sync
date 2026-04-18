@@ -81,6 +81,17 @@ ncaa_build_incremental_teams <- function(all_teams, out_dir, watch_list = charac
   )
 }
 
+ 
+#' Sync one stat type for a single year.
+#'
+#' @param year Integer season year.
+#' @param type One of `"pitching"` or `"batting"`.
+#' @param cfg Config list from `ncaa_load_config()`.
+#' @param mode Sync mode (`"incremental"` or `"full"`).
+#' @param team_name Optional team-name substring filter.
+#' @param limit Optional max number of teams after filtering.
+#' @returns List with combined rows, outcome counters, failures, and team count.
+#' @export
 ncaa_sync_type <- function(year, type, cfg, mode = cfg$mode %||% "incremental", team_name = NULL, limit = NULL) {
   season_ids <- .ncaa_season_ids()
   all_teams <- collegebaseball::ncaa_teams(years = year, divisions = cfg$division) |>
@@ -162,12 +173,35 @@ ncaa_sync_type <- function(year, type, cfg, mode = cfg$mode %||% "incremental", 
   )
 }
 
-ncaa_sync_daily <- function(config_path = NULL, mode = NULL, team_name = NULL, limit = NULL) {
+#' Run NCAA stat sync for configured years and types.
+#'
+#' When `smoke` is `TRUE`, syncs **pitching only** for a single team (`limit` defaults
+#' to `1`), forces `mode` to `"full"` (alphabetical team order), and skips
+#' `teams-*.json` writes — intended for CI or quick connectivity checks.
+#'
+#' @param config_path Path to YAML config, or `NULL` for defaults.
+#' @param mode Overrides `mode` in config unless `smoke` is enabled.
+#' @param team_name Optional substring filter for team names.
+#' @param limit Cap on teams processed (after filtering).
+#' @param smoke Logical; if `TRUE`, minimal one-team pitching pull (see above).
+#' @export
+ncaa_sync_daily <- function(config_path = NULL, mode = NULL, team_name = NULL, limit = NULL, smoke = FALSE) {
   cfg <- ncaa_load_config(config_path)
-  if (!is.null(mode)) cfg$mode <- mode
+  if (isTRUE(smoke)) {
+    cfg$types <- "pitching"
+    cfg$write_team_stats <- FALSE
+    cfg$mode <- "full"
+    if (is.null(limit)) limit <- 1L
+  } else if (!is.null(mode)) {
+    cfg$mode <- mode
+  }
 
   dir.create(cfg$output_dir, recursive = TRUE, showWarnings = FALSE)
   on.exit(.ncaa_close_session(), add = TRUE)
+  col_n_distinct <- function(df, col) {
+    if (is.null(df) || !col %in% names(df)) return(0L)
+    as.integer(dplyr::n_distinct(df[[col]], na.rm = TRUE))
+  }
 
   meta <- list(
     synced_at = format(Sys.time(), tz = "UTC", usetz = TRUE),
@@ -178,6 +212,14 @@ ncaa_sync_daily <- function(config_path = NULL, mode = NULL, team_name = NULL, l
     types = cfg$types,
     mode = cfg$mode,
     write_team_stats = isTRUE(cfg$write_team_stats),
+    schema_manifest = list(
+      metrics_yaml = "schema/metrics.yml",
+      json_schema_meta = "schema/json/meta.schema.json",
+      json_schema_pitching_players = "schema/json/pitching-players.schema.json",
+      json_schema_batting_players = "schema/json/batting-players.schema.json",
+      json_schema_teams_bundle = "schema/json/teams-bundle.schema.json"
+    ),
+    file_checksums = list(),
     results = list()
   )
 
@@ -197,15 +239,18 @@ ncaa_sync_daily <- function(config_path = NULL, mode = NULL, team_name = NULL, l
         out_path,
         useBytes = TRUE
       )
+      bn <- basename(out_path)
+      chk <- .file_checksum_entry(out_path)
+      if (!is.null(chk)) meta$file_checksums[[bn]] <- chk
       message(sprintf("Wrote %s (%d rows)", out_path, nrow(rows)))
 
       result_key <- sprintf("%s-%s", year, stat_type)
       meta$results[[result_key]] <- list(
         row_count = nrow(rows),
         team_count = result$team_count,
-        player_count = dplyr::n_distinct(rows$player_id, na.rm = TRUE),
-        row_team_count = dplyr::n_distinct(rows$team_id, na.rm = TRUE),
-        conference_count = dplyr::n_distinct(rows$conference, na.rm = TRUE),
+        player_count = col_n_distinct(rows, "player_id"),
+        row_team_count = col_n_distinct(rows, "team_id"),
+        conference_count = col_n_distinct(rows, "conference"),
         outcome_counts = result$outcome_counts,
         failure_count = length(result$failures),
         failures = result$failures
@@ -233,6 +278,9 @@ ncaa_sync_daily <- function(config_path = NULL, mode = NULL, team_name = NULL, l
         useBytes = TRUE
       )
       message(sprintf("Wrote %s", team_path))
+      bn <- basename(team_path)
+      chk <- .file_checksum_entry(team_path)
+      if (!is.null(chk)) meta$file_checksums[[bn]] <- chk
       meta$results[[sprintf("%s-teams", year)]] <- list(
         path = basename(team_path),
         pitching_team_count = nrow(engine$pitching_teams),
@@ -241,12 +289,23 @@ ncaa_sync_daily <- function(config_path = NULL, mode = NULL, team_name = NULL, l
     }
   }
 
+  meta_path <- file.path(cfg$output_dir, "meta.json")
   writeLines(
     jsonlite::toJSON(meta, auto_unbox = TRUE, pretty = TRUE, na = "null"),
-    file.path(cfg$output_dir, "meta.json"),
+    meta_path,
     useBytes = TRUE
   )
-  message(sprintf("Wrote %s", file.path(cfg$output_dir, "meta.json")))
+  bn_meta <- basename(meta_path)
+  chk_meta <- .file_checksum_entry(meta_path)
+  if (!is.null(chk_meta)) {
+    meta$file_checksums[[bn_meta]] <- chk_meta
+    writeLines(
+      jsonlite::toJSON(meta, auto_unbox = TRUE, pretty = TRUE, na = "null"),
+      meta_path,
+      useBytes = TRUE
+    )
+  }
+  message(sprintf("Wrote %s", meta_path))
 
   invisible(meta)
 }

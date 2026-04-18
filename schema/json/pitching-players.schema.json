@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/traftonobrien/ncaa-stats-sync/blob/main/schema/json/pitching-players.schema.json",
+  "title": "ncaaStatsSync pitching player rows",
+  "description": "Top-level JSON is an array of per-player pitching stat rows. Extended derived fields are allowed.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["player_id", "team_id", "team_name", "year"],
+    "additionalProperties": true,
+    "properties": {
+      "player_id": { "type": "string" },
+      "player_name": { "type": "string" },
+      "team_id": { "type": "integer" },
+      "team_name": { "type": "string" },
+      "conference": { "type": ["string", "null"] },
+      "conference_id": { "type": ["integer", "null"] },
+      "division": { "type": ["integer", "null"] },
+      "year": { "type": "integer" },
+      "ip_float": { "type": "number" }
+    }
+  }
+}
