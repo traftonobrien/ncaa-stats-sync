@@ -1,7 +1,7 @@
 Package: ncaaStatsSync
 Type: Package
 Title: NCAA D3 Player and Team Stat Sync
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person(
       given = "Trafton",
@@ -28,6 +28,7 @@ Imports:
     dplyr,
     jsonlite,
     rvest,
+    rlang,
     stringr,
     tibble,
     xml2,

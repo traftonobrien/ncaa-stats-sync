@@ -71,12 +71,6 @@ ncaa_build_incremental_teams <- function(all_teams, out_dir, watch_list = charac
     ))
   }
 
-  if (type == "pitching") {
-    team_rows <- add_pitching_derived_metrics(team_rows)
-  } else {
-    team_rows <- add_batting_derived_metrics(team_rows)
-  }
-
   list(
     ok = TRUE,
     status = "success",
@@ -143,6 +137,13 @@ ncaa_sync_type <- function(year, type, cfg, mode = cfg$mode %||% "incremental", 
   }
 
   combined <- dplyr::bind_rows(rows)
+  if (nrow(combined) > 0) {
+    if (type == "pitching") {
+      combined <- combined |> add_pitching_derived_metrics() |> add_contextual_benchmarks("pitching")
+    } else {
+      combined <- combined |> add_batting_derived_metrics() |> add_contextual_benchmarks("batting")
+    }
+  }
   message(sprintf(
     "[%s %s] done: success=%d empty_stats=%d access_denied=%d parse_failed=%d rows=%d",
     year, type,
@@ -202,6 +203,9 @@ ncaa_sync_daily <- function(config_path = NULL, mode = NULL, team_name = NULL, l
       meta$results[[result_key]] <- list(
         row_count = nrow(rows),
         team_count = result$team_count,
+        player_count = dplyr::n_distinct(rows$player_id, na.rm = TRUE),
+        row_team_count = dplyr::n_distinct(rows$team_id, na.rm = TRUE),
+        conference_count = dplyr::n_distinct(rows$conference, na.rm = TRUE),
         outcome_counts = result$outcome_counts,
         failure_count = length(result$failures),
         failures = result$failures

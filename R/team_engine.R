@@ -3,6 +3,31 @@
 #' Mirrors Pitch Tracker semantics: full-roster sums plus optional qualified
 #' pitching (minimum IP) and qualified batting (minimum PA).
 
+.add_team_context <- function(df, type = c("pitching", "batting")) {
+  type <- match.arg(type)
+  if (is.null(df) || nrow(df) == 0) return(df)
+  if (type == "pitching") {
+    higher_better <- c("k_pct", "k_minus_bb_pct")
+    lower_better <- c("era", "whip", "bb_pct")
+  } else {
+    higher_better <- c("avg", "obp", "slg", "ops", "bb_pct")
+    lower_better <- c("k_pct")
+  }
+  metrics <- unique(c(higher_better, lower_better))
+  for (m in metrics) {
+    df <- .apply_conference_baseline(df, m, "conference")
+  }
+  for (m in higher_better) {
+    df <- .apply_percentiles(df, m, TRUE, NULL, "overall")
+    df <- .apply_percentiles(df, m, TRUE, "conference", "conference")
+  }
+  for (m in lower_better) {
+    df <- .apply_percentiles(df, m, FALSE, NULL, "overall")
+    df <- .apply_percentiles(df, m, FALSE, "conference", "conference")
+  }
+  df
+}
+
 ncaa_aggregate_team_pitching <- function(df) {
   if (is.null(df) || nrow(df) == 0) {
     return(tibble::tibble())
@@ -35,7 +60,8 @@ ncaa_aggregate_team_pitching <- function(df) {
       bb_pct = dplyr::if_else(.data$bf > 0, (.data$bb / .data$bf) * 100, NA_real_),
       k_minus_bb_pct = .data$k_pct - .data$bb_pct
     ) |>
-    dplyr::arrange(.data$team_name)
+    dplyr::arrange(.data$team_name) |>
+    .add_team_context("pitching")
 }
 
 ncaa_aggregate_qualified_team_pitching <- function(df, min_ip = 5) {
@@ -70,7 +96,8 @@ ncaa_aggregate_qualified_team_pitching <- function(df, min_ip = 5) {
       bb_pct = dplyr::if_else(.data$bf > 0, (.data$bb / .data$bf) * 100, NA_real_),
       k_minus_bb_pct = .data$k_pct - .data$bb_pct
     ) |>
-    dplyr::arrange(.data$team_name)
+    dplyr::arrange(.data$team_name) |>
+    .add_team_context("pitching")
 }
 
 ncaa_aggregate_team_batting <- function(df) {
@@ -114,7 +141,8 @@ ncaa_aggregate_team_batting <- function(df) {
       k_pct = dplyr::if_else(.data$pa > 0, (.data$so / .data$pa) * 100, NA_real_),
       bb_pct = dplyr::if_else(.data$pa > 0, (.data$bb / .data$pa) * 100, NA_real_)
     ) |>
-    dplyr::arrange(.data$team_name)
+    dplyr::arrange(.data$team_name) |>
+    .add_team_context("batting")
 }
 
 ncaa_aggregate_qualified_team_batting <- function(df, min_pa = 15) {
@@ -133,7 +161,8 @@ ncaa_aggregate_qualified_team_batting <- function(df, min_pa = 15) {
 
   ncaa_aggregate_team_batting(q) |>
     dplyr::rename(qualified_hitters = .data$roster_hitters) |>
-    dplyr::mutate(min_pa = min_pa_threshold)
+    dplyr::mutate(min_pa = min_pa_threshold) |>
+    .add_team_context("batting")
 }
 
 #' Build full team stat bundle for one season from player-level frames.

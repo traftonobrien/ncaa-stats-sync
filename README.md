@@ -3,7 +3,7 @@
 [![test-package](https://github.com/traftonobrien/ncaa-stats-sync/actions/workflows/test-package.yml/badge.svg)](https://github.com/traftonobrien/ncaa-stats-sync/actions/workflows/test-package.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-R package and CLI to sync **NCAA Division III** season-to-date player stats and compute **team-level aggregates** (full roster + qualified thresholds) into deterministic JSON.
+R package and CLI to sync **NCAA Division III** season-to-date player stats and compute **team-level aggregates** (full roster + qualified thresholds), plus **conference baselines and percentiles** for both player and team views.
 
 ## Install
 
@@ -36,6 +36,15 @@ After player pulls, the package aggregates by `team_id`:
 - **Batting**: summed PA components; team AVG / OBP / SLG / OPS; optional qualified hitters (default min **15 PA**).
 
 Configure `min_ip_qualified`, `min_pa_qualified`, and `write_team_stats` in `config.yml`.
+
+## Baselines and percentiles
+
+Each player row is enriched with:
+- additional derived stats from base data (pitching: `k9`, `bb9`, `h9`, `hr9`, `go_fo_ratio`, `babip`, `lob_pct`, etc.; batting: `iso`, `babip`, `bb_k_ratio`, `sb_pct`, etc.)
+- conference baselines (`conference_mean_<metric>`, `conference_sd_<metric>`, `conference_delta_<metric>`)
+- percentile ranks (`overall_percentile_<metric>`, `conference_percentile_<metric>`)
+
+Team outputs in `teams-YYYY.json` include matching conference baselines and percentile columns on key team metrics.
 
 ## Documentation
 

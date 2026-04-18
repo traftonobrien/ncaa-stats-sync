@@ -194,6 +194,19 @@ add_pitching_derived_metrics <- function(df) {
       k_pct = dplyr::if_else(.data$bf > 0, (.data$so / .data$bf) * 100, NA_real_),
       bb_pct = dplyr::if_else(.data$bf > 0, (.data$bb / .data$bf) * 100, NA_real_),
       k_minus_bb_pct = .data$k_pct - .data$bb_pct,
+      k9 = dplyr::if_else(.data$ip_float > 0, (9 * .data$so) / .data$ip_float, NA_real_),
+      bb9 = dplyr::if_else(.data$ip_float > 0, (9 * .data$bb) / .data$ip_float, NA_real_),
+      h9 = dplyr::if_else(.data$ip_float > 0, (9 * .data$h) / .data$ip_float, NA_real_),
+      hr9 = dplyr::if_else(.data$ip_float > 0, (9 * .data$hr_a) / .data$ip_float, NA_real_),
+      go_fo_ratio = dplyr::if_else(.data$fo > 0, .data$go / .data$fo, NA_real_),
+      gb_pct = dplyr::if_else((.data$go + .data$fo) > 0, 100 * .data$go / (.data$go + .data$fo), NA_real_),
+      fb_pct = dplyr::if_else((.data$go + .data$fo) > 0, 100 * .data$fo / (.data$go + .data$fo), NA_real_),
+      hr_fb_pct = dplyr::if_else(.data$fo > 0, 100 * .data$hr_a / .data$fo, NA_real_),
+      so_bb = dplyr::if_else(.data$bb > 0, .data$so / .data$bb, NA_real_),
+      babip = dplyr::if_else((.data$bf - .data$bb - .data$so - .data$hr_a - .data$hb) > 0,
+        (.data$h - .data$hr_a) / (.data$bf - .data$bb - .data$so - .data$hr_a - .data$hb), NA_real_),
+      lob_pct = dplyr::if_else((.data$h + .data$bb + .data$hb - 1.4 * .data$hr_a) > 0,
+        100 * (.data$h + .data$bb + .data$hb - .data$r) / (.data$h + .data$bb + .data$hb - 1.4 * .data$hr_a), NA_real_),
       fip = dplyr::if_else(
         .data$ip_float > 0,
         ((13 * .data$hr_a + 3 * (.data$bb + .data$hb) - 2 * .data$so) / .data$ip_float) + fip_constant,
@@ -243,6 +256,13 @@ add_batting_derived_metrics <- function(df) {
       ops = .data$obp + .data$slg,
       k_pct = dplyr::if_else(.data$pa > 0, (.data$so / .data$pa) * 100, NA_real_),
       bb_pct = dplyr::if_else(.data$pa > 0, (.data$bb / .data$pa) * 100, NA_real_),
+      singles = pmax(0, .data$h - .data$doubles - .data$triples - .data$hr),
+      xbh = .data$doubles + .data$triples + .data$hr,
+      iso = .data$slg - .data$avg,
+      babip = dplyr::if_else((.data$ab - .data$so - .data$hr + .data$sf) > 0,
+        (.data$h - .data$hr) / (.data$ab - .data$so - .data$hr + .data$sf), NA_real_),
+      bb_k_ratio = dplyr::if_else(.data$so > 0, .data$bb / .data$so, NA_real_),
+      sb_pct = dplyr::if_else((.data$sb + .data$cs) > 0, 100 * .data$sb / (.data$sb + .data$cs), NA_real_),
       rc = ((.data$h + .data$bb + .data$hbp) * .data$tb) /
         pmax(1, (.data$ab + .data$bb + .data$hbp + .data$sf + .data$sh))
     )
@@ -263,4 +283,65 @@ add_batting_derived_metrics <- function(df) {
       )
     ) |>
     dplyr::select(-"rc")
+}
+
+.apply_percentiles <- function(df, metric, larger_is_better = TRUE, group_col = NULL, prefix = "overall") {
+  if (!metric %in% names(df)) return(df)
+  new_col <- sprintf("%s_percentile_%s", prefix, metric)
+  metric_sym <- rlang::sym(metric)
+  new_sym <- rlang::sym(new_col)
+  if (is.null(group_col)) {
+    out <- if (larger_is_better) dplyr::percent_rank(df[[metric]]) else dplyr::percent_rank(-df[[metric]])
+    df[[new_col]] <- 100 * out
+    return(df)
+  }
+  group_sym <- rlang::sym(group_col)
+  df |>
+    dplyr::group_by(!!group_sym) |>
+    dplyr::mutate(!!new_sym := 100 * if (larger_is_better) dplyr::percent_rank(!!metric_sym) else dplyr::percent_rank(-(!!metric_sym))) |>
+    dplyr::ungroup()
+}
+
+.apply_conference_baseline <- function(df, metric, group_col = "conference") {
+  if (!metric %in% names(df)) return(df)
+  metric_sym <- rlang::sym(metric)
+  mean_col <- rlang::sym(sprintf("conference_mean_%s", metric))
+  sd_col <- rlang::sym(sprintf("conference_sd_%s", metric))
+  delta_col <- rlang::sym(sprintf("conference_delta_%s", metric))
+  group_sym <- rlang::sym(group_col)
+  df |>
+    dplyr::group_by(!!group_sym) |>
+    dplyr::mutate(
+      !!mean_col := mean(!!metric_sym, na.rm = TRUE),
+      !!sd_col := stats::sd(!!metric_sym, na.rm = TRUE),
+      !!delta_col := !!metric_sym - !!mean_col
+    ) |>
+    dplyr::ungroup()
+}
+
+add_contextual_benchmarks <- function(df, type = c("pitching", "batting")) {
+  type <- match.arg(type)
+  if (nrow(df) == 0) return(df)
+
+  if (type == "pitching") {
+    higher_better <- c("k_pct", "k_minus_bb_pct", "era_plus", "war", "so_bb", "k9", "gb_pct", "lob_pct")
+    lower_better <- c("era", "whip", "bb_pct", "fip", "xfip", "h9", "bb9", "hr9", "babip")
+  } else {
+    higher_better <- c("avg", "obp", "slg", "ops", "wrc_plus", "war", "bb_pct", "iso", "sb_pct", "bb_k_ratio")
+    lower_better <- c("k_pct")
+  }
+
+  metrics <- unique(c(higher_better, lower_better))
+  for (m in metrics) {
+    df <- .apply_conference_baseline(df, m, "conference")
+  }
+  for (m in higher_better) {
+    df <- .apply_percentiles(df, m, TRUE, NULL, "overall")
+    df <- .apply_percentiles(df, m, TRUE, "conference", "conference")
+  }
+  for (m in lower_better) {
+    df <- .apply_percentiles(df, m, FALSE, NULL, "overall")
+    df <- .apply_percentiles(df, m, FALSE, "conference", "conference")
+  }
+  df
 }

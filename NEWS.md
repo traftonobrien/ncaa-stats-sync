@@ -1,3 +1,17 @@
+# ncaaStatsSync 0.3.0
+
+## Added
+
+- Full player enrichment pass now runs across the combined season dataset (not per-team), so league-relative metrics are internally consistent.
+- Expanded derived metrics from base columns:
+  - Pitching: `k9`, `bb9`, `h9`, `hr9`, `go_fo_ratio`, `gb_pct`, `fb_pct`, `hr_fb_pct`, `so_bb`, `babip`, `lob_pct`.
+  - Batting: `singles`, `xbh`, `iso`, `babip`, `bb_k_ratio`, `sb_pct`.
+- Conference context for players and teams:
+  - `conference_mean_*`, `conference_sd_*`, `conference_delta_*`.
+  - `overall_percentile_*` and `conference_percentile_*`.
+- Sync metadata now includes `player_count`, `row_team_count`, and `conference_count` per stat type.
+- Added regression tests for contextual benchmarks and percentile columns.
+
 # ncaaStatsSync 0.2.0
 
 ## Added
