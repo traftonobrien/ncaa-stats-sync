@@ -1,3 +1,9 @@
+# ncaaStatsSync 0.4.3
+
+## Fixed / maintenance
+
+- GitHub Actions **test-package** and **sync-ncaa-stats** workflows now use `r-lib/actions/setup-r-dependencies` with **Posit/RSPM** (`use-public-rspm`) so Linux runners get **binary** packages (avoids compiling `curl`, `fs`, etc. without system headers). `GITHUB_PAT` is set so `Remotes:` resolves. Scheduled sync installs Chromium for **chromote**.
+
 # ncaaStatsSync 0.4.2
 
 ## Fixed / maintenance

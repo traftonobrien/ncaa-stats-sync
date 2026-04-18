@@ -12,17 +12,20 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: "4.3"
+          use-public-rspm: true
 
-      - name: Install dependencies
-        run: |
-          Rscript -e 'install.packages(c("remotes","devtools","testthat","knitr"), repos="https://cloud.r-project.org")'
-          Rscript -e 'remotes::install_local(".", dependencies=TRUE, upgrade="always")'
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::devtools, local::.
+          needs: check
 
       - name: Doctor
         run: Rscript scripts/ncaa_stats_doctor.R
