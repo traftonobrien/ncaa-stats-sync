@@ -1,7 +1,7 @@
 Package: ncaaStatsSync
 Type: Package
 Title: NCAA D3 Player and Team Stat Sync
-Version: 0.4.1
+Version: 0.4.2
 Authors@R: c(
     person(
       given = "Trafton",
@@ -40,3 +40,5 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
+Remotes:
+    robert-frey/collegebaseball

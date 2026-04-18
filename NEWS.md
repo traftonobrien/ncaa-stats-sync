@@ -1,3 +1,9 @@
+# ncaaStatsSync 0.4.2
+
+## Fixed / maintenance
+
+- `DESCRIPTION` now declares `Remotes: robert-frey/collegebaseball` so GitHub Actions (`pkgdown`, `setup-r-dependencies`) can install the non-CRAN `collegebaseball` dependency.
+
 # ncaaStatsSync 0.4.1
 
 ## Fixed / maintenance
