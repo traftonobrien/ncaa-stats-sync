@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          Rscript -e 'install.packages(c("remotes","chromote","collegebaseball","jsonlite","rvest","xml2","dplyr","stringr","yaml"), repos="https://cloud.r-project.org")'
+          Rscript -e 'install.packages(c("remotes","chromote","collegebaseball","baseballr","jsonlite","rvest","xml2","dplyr","stringr","tibble","yaml"), repos="https://cloud.r-project.org")'
           Rscript -e 'remotes::install_local(".", dependencies = TRUE)'
 
       - name: Run sync

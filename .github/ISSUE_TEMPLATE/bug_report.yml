@@ -1,0 +1,23 @@
+name: Bug report
+description: Parser, sync, or stat-engine issue
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: "e.g. 0.2.0"
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Command, config snippet, and year/division if relevant.

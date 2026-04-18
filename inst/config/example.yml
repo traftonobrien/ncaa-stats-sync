@@ -11,3 +11,9 @@ watch_list:
   - MIT
 max_wait_seconds: 8
 max_retries: 4
+
+# Team stat engine (written to teams-YYYY.json)
+write_team_stats: true
+min_ip_qualified: 5
+min_pa_qualified: 15
+schema_version: "1.0"

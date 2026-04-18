@@ -1,17 +1,20 @@
 Package: ncaaStatsSync
 Type: Package
-Title: Daily NCAA Stats Sync to JSON
-Version: 0.1.0
+Title: NCAA D3 Player and Team Stat Sync
+Version: 0.2.0
 Authors@R: c(
     person(
-      given = "Pitch Tracker",
-      family = "Maintainers",
+      given = "Trafton",
+      family = "OBrien",
       role = c("aut", "cre"),
       email = "maintainers@example.com"
     )
   )
-Description: Fetches NCAA season-to-date leaderboard pages, parses batting and
-    pitching tables, and writes deterministic JSON snapshots with sync metadata.
+Description: Fetches NCAA Division III season-to-date stats via a shared browser
+    session, parses pitching and batting player tables, computes derived metrics
+    (FIP, wRC+, WAR-style summaries), aggregates team-level and qualified-team
+    summaries, and writes deterministic JSON for downstream apps or scheduled
+    GitHub Actions.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -19,11 +22,15 @@ RoxygenNote: 7.3.2
 Depends:
     R (>= 4.1)
 Imports:
+    baseballr,
     chromote,
     collegebaseball,
     dplyr,
     jsonlite,
     rvest,
     stringr,
+    tibble,
     xml2,
     yaml
+Suggests:
+    testthat (>= 3.0.0)

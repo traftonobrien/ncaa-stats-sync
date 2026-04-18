@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Pitch Tracker (parent project)
+    url: https://github.com/traftonobrien/pitch-tracker
+    about: App issues that are not about this R package.

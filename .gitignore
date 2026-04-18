@@ -2,4 +2,4 @@ output/
 .Rproj.user/
 .Rhistory
 .RData
-config.yml
+/config.yml

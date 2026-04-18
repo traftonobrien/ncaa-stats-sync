@@ -1,5 +1,3 @@
-`%||%` <- function(x, y) if (is.null(x)) y else x
-
 ncaa_default_config <- function() {
   list(
     years = c(2026L),
@@ -9,7 +7,11 @@ ncaa_default_config <- function() {
     mode = "incremental",
     watch_list = c("Babson"),
     max_wait_seconds = 8L,
-    max_retries = 4L
+    max_retries = 4L,
+    write_team_stats = TRUE,
+    min_ip_qualified = 5,
+    min_pa_qualified = 15,
+    schema_version = "1.0"
   )
 }
 
@@ -20,5 +22,5 @@ ncaa_load_config <- function(config_path = NULL) {
   loaded <- yaml::read_yaml(config_path)
   if (is.null(loaded)) return(cfg)
 
-  modifyList(cfg, loaded)
+  utils::modifyList(cfg, loaded)
 }

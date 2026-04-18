@@ -1,66 +1,50 @@
-# ncaa-stats-sync
+# ncaa-stats-sync · ncaaStatsSync
 
-`ncaa-stats-sync` is a reusable R package for pulling NCAA leaderboard stats (starting with Division III) on a daily schedule and writing deterministic JSON snapshots.
+[![test-package](https://github.com/traftonobrien/ncaa-stats-sync/actions/workflows/test-package.yml/badge.svg)](https://github.com/traftonobrien/ncaa-stats-sync/actions/workflows/test-package.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-This package is extracted from the production workflow used in Pitch Tracker, but designed to be portable for any project that needs daily NCAA stat cache files.
+R package and CLI to sync **NCAA Division III** season-to-date player stats and compute **team-level aggregates** (full roster + qualified thresholds) into deterministic JSON.
 
-## What it does
-
-- Fetches NCAA `season_to_date_stats` pages with a shared Chromote session.
-- Retries on transient failures and access-denied challenge pages.
-- Parses stat tables and player links from NCAA HTML.
-- Writes `pitching-<year>.json`, `batting-<year>.json`, and `meta.json`.
-- Supports `full` and `incremental` sync modes.
-- Ships with a CLI script and a GitHub Actions workflow template.
-
-## Install (local dev)
+## Install
 
 ```r
-install.packages(c(
-  "chromote",
-  "collegebaseball",
-  "jsonlite",
-  "rvest",
-  "xml2",
-  "dplyr",
-  "stringr",
-  "yaml"
-))
-```
-
-From this folder:
-
-```r
-devtools::load_all(".")
+install.packages("remotes")
+remotes::install_github("traftonobrien/ncaa-stats-sync")
 ```
 
 ## Quickstart
 
-Create a config file:
-
-```r
-file.copy("inst/config/example.yml", "config.yml")
-```
-
-Run a sync:
-
 ```bash
+cp inst/config/example.yml config.yml
 Rscript scripts/sync_ncaa_stats.R --config config.yml --mode incremental
 ```
 
-Output files:
+## Outputs
 
-- `output/college-stats/pitching-2026.json`
-- `output/college-stats/batting-2026.json`
-- `output/college-stats/meta.json`
+| File | Contents |
+|------|----------|
+| `pitching-YYYY.json` | Player rows, flat array (Pitch Tracker–compatible) |
+| `batting-YYYY.json` | Player rows, flat array |
+| `teams-YYYY.json` | Team stat engine: roster totals + qualified-team slices |
+| `meta.json` | Sync metadata |
 
-## Public repo launch
+## Team stat engine
 
-1. Copy this directory into its own repository.
-2. Set `output_dir` in `config.yml`.
-3. Add `.github/workflows/sync-ncaa-stats.yml` from `inst/workflows/`.
-4. Enable scheduled workflow runs in GitHub Actions.
-5. Optionally publish to CRAN or keep as a GitHub package.
+After player pulls, the package aggregates by `team_id`:
 
-See `docs/LAUNCH_CHECKLIST.md` for the full release sequence.
-See `docs/PUBLISHING_GUIDE.md` for naming, install/download, and integration options.
+- **Pitching**: summed IP, ER, H, BB, SO, BF, etc.; team ERA and WHIP; optional **qualified** aggregate (default min **5 IP** per pitcher), aligned with Pitch Tracker’s `computeQualifiedAggregate` idea.
+- **Batting**: summed PA components; team AVG / OBP / SLG / OPS; optional qualified hitters (default min **15 PA**).
+
+Configure `min_ip_qualified`, `min_pa_qualified`, and `write_team_stats` in `config.yml`.
+
+## Documentation
+
+- `docs/PUBLISHING_GUIDE.md` — naming, download, CI, plugins
+- `docs/LAUNCH_CHECKLIST.md` — release checklist
+- `NEWS.md` — version history
+
+## Repo layout
+
+- `R/` — sync, parse, normalize, team engine
+- `scripts/sync_ncaa_stats.R` — CLI entry
+- `.github/workflows/` — tests + optional nightly sync template (`inst/workflows/sync-ncaa-stats.yml`)
