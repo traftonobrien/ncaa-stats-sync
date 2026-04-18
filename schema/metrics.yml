@@ -1,0 +1,202 @@
+schema_version: "1.0"
+generated_by: "ncaaStatsSync"
+
+# This catalog is intentionally descriptive (not implementation-coupled).
+# It documents output fields, their directionality, and (when applicable)
+# the formula used from base columns.
+
+player:
+  pitching:
+    base_fields:
+      - player_id
+      - player_name
+      - team_id
+      - team_name
+      - conference
+      - conference_id
+      - division
+      - year
+      - app
+      - gs
+      - ip_float
+      - h
+      - r
+      - er
+      - bb
+      - so
+      - bf
+      - hr_a
+      - hb
+      - go
+      - fo
+      - w
+      - l
+      - sv
+      - pitches
+      - ibb
+
+    derived_fields:
+      whip:
+        direction: lower_better
+        formula: "(H + BB) / IP"
+      era:
+        direction: lower_better
+        formula: "9 * ER / IP"
+      k_pct:
+        direction: higher_better
+        formula: "100 * SO / BF"
+      bb_pct:
+        direction: lower_better
+        formula: "100 * BB / BF"
+      k_minus_bb_pct:
+        direction: higher_better
+        formula: "k_pct - bb_pct"
+      k9:
+        direction: higher_better
+        formula: "9 * SO / IP"
+      bb9:
+        direction: lower_better
+        formula: "9 * BB / IP"
+      h9:
+        direction: lower_better
+        formula: "9 * H / IP"
+      hr9:
+        direction: lower_better
+        formula: "9 * HR / IP"
+      go_fo_ratio:
+        direction: higher_better
+        formula: "GO / FO"
+      gb_pct:
+        direction: higher_better
+        formula: "100 * GO / (GO + FO)"
+      fb_pct:
+        direction: lower_better
+        formula: "100 * FO / (GO + FO)"
+      hr_fb_pct:
+        direction: lower_better
+        formula: "100 * HR / FO"
+      so_bb:
+        direction: higher_better
+        formula: "SO / BB"
+      babip:
+        direction: lower_better
+        formula: "(H - HR) / (BF - BB - SO - HR - HB)"
+      lob_pct:
+        direction: higher_better
+        formula: "100 * (H + BB + HB - R) / (H + BB + HB - 1.4 * HR)"
+      fip:
+        direction: lower_better
+        formula: "((13*HR + 3*(BB+HB) - 2*SO)/IP) + constant"
+      xfip:
+        direction: lower_better
+        formula: "FIP but uses expected HR from league HR/FB rate"
+
+    contextual_fields:
+      conference_mean_*:
+        meaning: "Conference mean of metric"
+      conference_sd_*:
+        meaning: "Conference standard deviation of metric"
+      conference_delta_*:
+        meaning: "metric - conference_mean_metric"
+      overall_percentile_*:
+        meaning: "0–100 percentile among all players (direction-aware)"
+      conference_percentile_*:
+        meaning: "0–100 percentile within conference (direction-aware)"
+
+  batting:
+    base_fields:
+      - player_id
+      - player_name
+      - team_id
+      - team_name
+      - conference
+      - conference_id
+      - division
+      - year
+      - gp
+      - gs
+      - ab
+      - h
+      - doubles
+      - triples
+      - tb
+      - hr
+      - rbi
+      - bb
+      - hbp
+      - sf
+      - sh
+      - so
+      - sb
+      - cs
+      - r
+
+    derived_fields:
+      pa:
+        direction: higher_better
+        formula: "AB + BB + HBP + SF + SH"
+      avg:
+        direction: higher_better
+        formula: "H / AB"
+      obp:
+        direction: higher_better
+        formula: "(H + BB + HBP) / (AB + BB + HBP + SF)"
+      slg:
+        direction: higher_better
+        formula: "TB / AB"
+      ops:
+        direction: higher_better
+        formula: "OBP + SLG"
+      k_pct:
+        direction: lower_better
+        formula: "100 * SO / PA"
+      bb_pct:
+        direction: higher_better
+        formula: "100 * BB / PA"
+      singles:
+        direction: higher_better
+        formula: "H - 2B - 3B - HR"
+      xbh:
+        direction: higher_better
+        formula: "2B + 3B + HR"
+      iso:
+        direction: higher_better
+        formula: "SLG - AVG"
+      babip:
+        direction: higher_better
+        formula: "(H - HR) / (AB - SO - HR + SF)"
+      bb_k_ratio:
+        direction: higher_better
+        formula: "BB / SO"
+      sb_pct:
+        direction: higher_better
+        formula: "100 * SB / (SB + CS)"
+      wrc_plus:
+        direction: higher_better
+        formula: "100 * (RC/PA) / league_mean(RC/PA)"
+
+    contextual_fields:
+      conference_mean_*: { meaning: "Conference mean of metric" }
+      conference_sd_*: { meaning: "Conference standard deviation of metric" }
+      conference_delta_*: { meaning: "metric - conference_mean_metric" }
+      overall_percentile_*: { meaning: "0–100 percentile among all players (direction-aware)" }
+      conference_percentile_*: { meaning: "0–100 percentile within conference (direction-aware)" }
+
+team:
+  pitching:
+    notes:
+      - "Team aggregates are sums of player counting stats; rate stats are computed from summed totals."
+    key_metrics:
+      - era
+      - whip
+      - k_pct
+      - bb_pct
+      - k_minus_bb_pct
+  batting:
+    key_metrics:
+      - avg
+      - obp
+      - slg
+      - ops
+      - k_pct
+      - bb_pct

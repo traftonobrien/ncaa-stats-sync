@@ -5,7 +5,7 @@ ncaa_default_config <- function() {
     types = c("pitching", "batting"),
     output_dir = "output/college-stats",
     mode = "incremental",
-    watch_list = c("Babson"),
+    watch_list = character(0),
     max_wait_seconds = 8L,
     max_retries = 4L,
     write_team_stats = TRUE,

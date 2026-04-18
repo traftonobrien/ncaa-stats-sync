@@ -1,6 +1,6 @@
 #' Team-level stat engine: aggregate player rows into team totals + qualified slices.
 #'
-#' Mirrors Pitch Tracker semantics: full-roster sums plus optional qualified
+#' Mirrors standard leaderboard semantics: full-roster sums plus optional qualified
 #' pitching (minimum IP) and qualified batting (minimum PA).
 
 .add_team_context <- function(df, type = c("pitching", "batting")) {

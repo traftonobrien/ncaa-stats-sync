@@ -1,4 +1,4 @@
-#' Parse NCAA stats HTML (matches production Pitch Tracker classification).
+#' Parse NCAA stats HTML (deterministic classification).
 #'
 #' @returns List with `status`, `df`, `links`, `detail`.
 ncaa_parse_stats_html <- function(html, type = c("pitching", "batting")) {
