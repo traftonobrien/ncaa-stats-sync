@@ -19,6 +19,26 @@ cp inst/config/example.yml config.yml
 Rscript scripts/sync_ncaa_stats.R --config config.yml --mode incremental
 ```
 
+Check that R packages and (optionally) Chrome/Chromium are visible before a long run:
+
+```bash
+Rscript scripts/ncaa_stats_doctor.R
+```
+
+CI-friendly connectivity check (single D3 team, pitching only — **hits the live NCAA site**):
+
+```bash
+Rscript scripts/sync_ncaa_stats.R --config config.yml --smoke
+```
+
+The sync script exits with status **1** on R errors, or when `--smoke` sees parse/access failures or missing expected checksums.
+
+Package checks (Pandoc-independent local gate):
+
+```bash
+make check
+```
+
 ## Outputs
 
 | File | Contents |
@@ -26,8 +46,9 @@ Rscript scripts/sync_ncaa_stats.R --config config.yml --mode incremental
 | `pitching-YYYY.json` | Player rows, flat array |
 | `batting-YYYY.json` | Player rows, flat array |
 | `teams-YYYY.json` | Team stat engine: roster totals + qualified-team slices |
-| `meta.json` | Sync metadata |
+| `meta.json` | Sync metadata, per-file SHA-256 checksums, detailed results |
 | `schema/metrics.yml` | Metric catalog (fields, directionality, formulas) |
+| `schema/json/*.json` | JSON Schema (draft 2020-12) for validating published artifacts |
 
 ## Team stat engine
 
@@ -51,9 +72,15 @@ Team outputs in `teams-YYYY.json` include matching conference baselines and perc
 
 - `NEWS.md` — version history
 - `schema/metrics.yml` — metric catalog and formulas
+- Vignettes (build with `devtools::build_vignettes()` or site with `pkgdown::build_site()`)
+
+### Product boundary (OSS vs hosted)
+
+This repository is the **open-source sync and JSON contract**: scraping helpers, normalization, team engine, schemas, and static JSON outputs for any consumer. A **separate hosted API or commercial add-on** (not part of this repo) would layer auth, multi-tenant hosting, SLAs, and proprietary analytics on top of the same artifacts — the OSS package stays the offline, forkable, verifiable core.
 
 ## Repo layout
 
 - `R/` — sync, parse, normalize, team engine
-- `scripts/sync_ncaa_stats.R` — CLI entry
+- `scripts/sync_ncaa_stats.R` — CLI entry (supports `--smoke`, non-zero exit on failure)
+- `scripts/ncaa_stats_doctor.R` — environment check
 - `.github/workflows/` — tests + optional nightly sync template (`inst/workflows/sync-ncaa-stats.yml`)

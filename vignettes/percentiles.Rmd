@@ -1,0 +1,19 @@
+---
+title: "Percentile ranks"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Percentile ranks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(comment = NA)
+```
+
+Each player (and key team metrics in `teams-*.json`) carries two percentile flavors:
+
+- **`overall_percentile_<metric>`** — rank of that row’s value within the full Division III sample for the synced season slice.
+- **`conference_percentile_<metric>`** — the same idea restricted to pitchers or hitters in the same `conference`.
+
+Percentiles are **0–100** and are computed after derived metrics and baselines are known, so they stay comparable across teams. When conference membership is missing or a conference is tiny, prefer the overall column for stability.

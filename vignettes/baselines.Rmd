@@ -1,0 +1,19 @@
+---
+title: "Conference baselines"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Conference baselines}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(comment = NA)
+```
+
+For each numeric metric in `schema/metrics.yml`, the sync adds conference context on every player row:
+
+- **`conference_mean_<metric>`** and **`conference_sd_<metric>`** describe the league within that row’s conference (same stat type: pitching vs batting).
+- **`conference_delta_<metric>`** expresses how far the row sits from that mean in SD units (direction follows the metric’s `direction` field in the YAML catalog).
+
+Team rows reuse the same naming on aggregated team statistics. Baselines are computed on the **combined** season dataset so a pitcher’s “conference” slice matches everyone else’s for that conference and year.

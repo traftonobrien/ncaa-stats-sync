@@ -1,0 +1,19 @@
+---
+title: "Qualified vs full roster"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Qualified vs full roster}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(comment = NA)
+```
+
+The **team stat engine** emits two parallel views:
+
+1. **Full roster** — sums every player who appears in the NCAA table for that team (subject to parse success).
+2. **Qualified** — the same aggregates restricted to pitchers at or above `min_ip_qualified` (default **5 IP**) and hitters at or above `min_pa_qualified` (default **15 PA**).
+
+Use roster-wide totals for team offense/defense “what actually happened,” and qualified slices for fair rate-stat comparisons that mirror typical leaderboard cutoffs. Thresholds are configurable in `config.yml` and documented in `schema/metrics.yml`.

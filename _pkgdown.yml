@@ -1,0 +1,6 @@
+url: https://traftonobrien.github.io/ncaa-stats-sync/
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]

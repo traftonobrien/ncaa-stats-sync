@@ -1,3 +1,16 @@
+# ncaaStatsSync 0.4.0
+
+## Added
+
+- JSON Schema documents under `schema/json/` for player arrays, `teams` bundle, and `meta.json` (including optional `file_checksums`).
+- `meta.json` now records SHA-256 checksums (and byte sizes) for each written artifact; `meta.json` is written twice so its own checksum is included.
+- `ncaa_stats_doctor()` plus `scripts/ncaa_stats_doctor.R` for dependency and browser-path checks (non-zero exit when dependencies are missing).
+- CLI `--smoke` for a one-team pitching pull with checksum validation; sync errors or empty smoke results exit non-zero.
+
+## Documentation
+
+- pkgdown scaffolding (`_pkgdown.yml`) and three vignettes: percentiles, conference baselines, qualified vs roster.
+
 # ncaaStatsSync 0.3.0
 
 ## Added
