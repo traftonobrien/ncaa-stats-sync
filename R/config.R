@@ -1,3 +1,7 @@
+#' Default sync configuration.
+#'
+#' @returns Named list used by `ncaa_sync_daily()`.
+#' @export
 ncaa_default_config <- function() {
   list(
     years = c(2026L),
@@ -15,6 +19,11 @@ ncaa_default_config <- function() {
   )
 }
 
+#' Load YAML config and merge with defaults.
+#'
+#' @param config_path Optional path to a YAML config file.
+#' @returns Named list configuration for sync functions.
+#' @export
 ncaa_load_config <- function(config_path = NULL) {
   cfg <- ncaa_default_config()
   if (is.null(config_path)) return(cfg)

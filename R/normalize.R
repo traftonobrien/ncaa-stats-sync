@@ -1,4 +1,10 @@
 #' Extract pitching player rows from raw NCAA table + player links.
+#'
+#' @param raw_df Raw stat table data frame from `ncaa_parse_stats_html()`.
+#' @param links Link tibble from `ncaa_parse_stats_html()`.
+#' @param team_info Single-row team metadata data frame.
+#' @returns Pitching player tibble in normalized schema.
+#' @export
 extract_pitching_rows <- function(raw_df, links, team_info) {
   yr <- if ("year" %in% names(team_info)) as.integer(team_info$year[[1]]) else NA_integer_
   raw_df |>
@@ -89,6 +95,12 @@ extract_pitching_rows <- function(raw_df, links, team_info) {
 }
 
 #' Extract batting player rows.
+#'
+#' @param raw_df Raw stat table data frame from `ncaa_parse_stats_html()`.
+#' @param links Link tibble from `ncaa_parse_stats_html()`.
+#' @param team_info Single-row team metadata data frame.
+#' @returns Batting player tibble in normalized schema.
+#' @export
 extract_batting_rows <- function(raw_df, links, team_info) {
   yr <- if ("year" %in% names(team_info)) as.integer(team_info$year[[1]]) else NA_integer_
   raw_df |>
@@ -171,6 +183,11 @@ extract_batting_rows <- function(raw_df, links, team_info) {
     )
 }
 
+#' Add derived pitching metrics.
+#'
+#' @param df Normalized pitching player tibble.
+#' @returns Input tibble with derived pitching and value metrics appended.
+#' @export
 add_pitching_derived_metrics <- function(df) {
   if (nrow(df) == 0) return(df)
 
@@ -240,6 +257,11 @@ add_pitching_derived_metrics <- function(df) {
     dplyr::select(-"expected_hr")
 }
 
+#' Add derived batting metrics.
+#'
+#' @param df Normalized batting player tibble.
+#' @returns Input tibble with derived batting and value metrics appended.
+#' @export
 add_batting_derived_metrics <- function(df) {
   if (nrow(df) == 0) return(df)
 
@@ -319,6 +341,12 @@ add_batting_derived_metrics <- function(df) {
     dplyr::ungroup()
 }
 
+#' Add conference baselines and percentile context.
+#'
+#' @param df Normalized player tibble.
+#' @param type One of `"pitching"` or `"batting"`.
+#' @returns Input tibble with conference baseline and percentile columns added.
+#' @export
 add_contextual_benchmarks <- function(df, type = c("pitching", "batting")) {
   type <- match.arg(type)
   if (nrow(df) == 0) return(df)

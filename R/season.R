@@ -16,6 +16,13 @@
   )
 }
 
+#' Resolve NCAA category id for year/type.
+#'
+#' @param season_ids Data frame from `.ncaa_season_ids()`.
+#' @param year Integer season year.
+#' @param type One of `"pitching"` or `"batting"`.
+#' @returns Scalar category id used in NCAA stats URLs.
+#' @export
 ncaa_get_category_id <- function(season_ids, year, type) {
   year_row <- season_ids[season_ids$season == year, ]
   if (nrow(year_row) == 0) stop(sprintf("No NCAA season ids found for year %s", year))

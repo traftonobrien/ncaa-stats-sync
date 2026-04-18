@@ -1,6 +1,9 @@
 #' Parse NCAA stats HTML (deterministic classification).
 #'
+#' @param html HTML response body.
+#' @param type One of `"pitching"` or `"batting"`.
 #' @returns List with `status`, `df`, `links`, `detail`.
+#' @export
 ncaa_parse_stats_html <- function(html, type = c("pitching", "batting")) {
   type <- match.arg(type)
 

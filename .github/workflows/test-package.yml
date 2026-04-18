@@ -24,5 +24,11 @@ jobs:
           Rscript -e 'install.packages(c("remotes","devtools","testthat","knitr"), repos="https://cloud.r-project.org")'
           Rscript -e 'remotes::install_local(".", dependencies=TRUE, upgrade="always")'
 
+      - name: Doctor
+        run: Rscript scripts/ncaa_stats_doctor.R
+
       - name: Run tests
         run: Rscript -e 'devtools::test()'
+
+      - name: Package check (no vignettes/manual)
+        run: Rscript -e 'devtools::check(document = FALSE, vignettes = FALSE, manual = FALSE, build_args = c("--no-build-vignettes"), args = c("--no-manual"), error_on = "warning")'
