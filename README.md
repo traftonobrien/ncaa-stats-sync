@@ -1,7 +1,10 @@
 # ncaa-stats-sync · ncaaStatsSync
 
 [![test-package](https://github.com/traftonobrien/ncaa-stats-sync/actions/workflows/test-package.yml/badge.svg)](https://github.com/traftonobrien/ncaa-stats-sync/actions/workflows/test-package.yml)
+[![pkgdown](https://github.com/traftonobrien/ncaa-stats-sync/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/traftonobrien/ncaa-stats-sync/actions/workflows/pkgdown.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+Package documentation site (after the first successful `pkgdown` workflow run): [traftonobrien.github.io/ncaa-stats-sync](https://traftonobrien.github.io/ncaa-stats-sync/).
 
 R package and CLI to sync **NCAA Division III** season-to-date player stats and compute **team-level aggregates** (full roster + qualified thresholds), plus **conference baselines and percentiles** for both player and team views.
 

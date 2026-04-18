@@ -1,3 +1,10 @@
+# ncaaStatsSync 0.4.1
+
+## Fixed / maintenance
+
+- `LICENSE` now uses the standard R MIT stub (two-line DCF) so `R CMD check` no longer reports an invalid license stub NOTE.
+- GitHub Actions workflow `pkgdown.yaml` builds and deploys the pkgdown site to the `gh-pages` branch on pushes to `main` (skips deploy on pull requests).
+
 # ncaaStatsSync 0.4.0
 
 ## Added
