@@ -46,6 +46,43 @@ jobs:
           cp inst/config/example.yml config.yml
           Rscript scripts/sync_ncaa_stats.R --config config.yml --mode "${{ github.event.inputs.mode || 'incremental' }}"
 
+      - name: Retry batting-only when blocked
+        run: |
+          BATTING_OK=$(Rscript -e '
+            m <- jsonlite::fromJSON("output/college-stats/meta.json", simplifyVector = FALSE)
+            years <- as.character(unlist(m$years))
+            ok <- TRUE
+            for (y in years) {
+              key <- sprintf("%s-batting", y)
+              entry <- m$results[[key]]
+              success <- 0L
+              if (!is.null(entry) && !is.null(entry$outcome_counts) && !is.null(entry$outcome_counts$success)) {
+                success <- as.integer(entry$outcome_counts$success)
+              }
+              if (success < 1L) ok <- FALSE
+            }
+            cat(if (ok) "true" else "false")
+          ')
+          if [ "$BATTING_OK" = "false" ]; then
+            echo "Batting had zero successful teams; retrying batting-only sync after cooldown."
+            sleep 120
+            Rscript -e '
+              cfg <- yaml::read_yaml("config.yml")
+              cfg$types <- list("batting")
+              cfg$mode <- "full"
+              if (is.null(cfg$access_denied_team_retries) || as.integer(cfg$access_denied_team_retries) < 5L) {
+                cfg$access_denied_team_retries <- 5L
+              }
+              if (is.null(cfg$access_denied_backoff_seconds) || as.numeric(cfg$access_denied_backoff_seconds) < 20) {
+                cfg$access_denied_backoff_seconds <- 20
+              }
+              yaml::write_yaml(cfg, "config.batting-retry.yml")
+            '
+            Rscript scripts/sync_ncaa_stats.R --config config.batting-retry.yml --mode full
+          else
+            echo "Batting already has successful teams; skipping fallback retry."
+          fi
+
       - name: Validate sync health
         run: |
           Rscript -e '
