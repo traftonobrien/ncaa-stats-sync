@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ncaaStatsSync</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.4.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.4.4</span>
       </span>
     </div>
 
@@ -57,6 +57,14 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.4.4" id="ncaastatssync-044">ncaaStatsSync 0.4.4<a class="anchor" aria-label="anchor" href="#ncaastatssync-044"></a></h2>
+<div class="section level3">
+<h3 id="fixed--reliability-0-4-4">Fixed / reliability<a class="anchor" aria-label="anchor" href="#fixed--reliability-0-4-4"></a></h3>
+<ul><li>Added targeted per-team retries for <code>access_denied</code> responses (<code>access_denied_team_retries</code>, <code>access_denied_backoff_seconds</code>) so transient NCAA blocks are retried with cooldown and fresh browser sessions.</li>
+<li>Added workflow health gate in <code>.github/workflows/sync-ncaa-stats.yml</code> that fails runs when a required stat type (pitching/batting) has zero successful team fetches, preventing silent “green but unusable” outputs.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.4.3" id="ncaastatssync-043">ncaaStatsSync 0.4.3<a class="anchor" aria-label="anchor" href="#ncaastatssync-043"></a></h2>
 <div class="section level3">
