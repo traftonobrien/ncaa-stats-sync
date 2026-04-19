@@ -14,6 +14,8 @@ ncaa_default_config <- function() {
     max_retries = 4L,
     access_denied_team_retries = 3L,
     access_denied_backoff_seconds = 12L,
+    request_interval_seconds = 0.6,
+    access_denied_team_cooldown_seconds = 3,
     write_team_stats = TRUE,
     min_ip_qualified = 5,
     min_pa_qualified = 15,

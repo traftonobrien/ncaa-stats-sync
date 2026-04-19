@@ -1,4 +1,4 @@
-# ncaaStatsSync 0.4.4
+# ncaaStatsSync 0.4.5
 
 ## Fixed / reliability
 

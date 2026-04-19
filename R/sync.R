@@ -129,6 +129,8 @@ ncaa_sync_type <- function(year, type, cfg, mode = cfg$mode %||% "incremental", 
   rows <- list()
   outcome_counts <- list(success = 0L, empty_stats = 0L, access_denied = 0L, parse_failed = 0L)
   failures <- list()
+  req_interval <- as.numeric(cfg$request_interval_seconds %||% 0.6)
+  denied_cooldown <- as.numeric(cfg$access_denied_team_cooldown_seconds %||% 3)
 
   for (i in seq_len(nrow(all_teams))) {
     team_info <- all_teams[i, , drop = FALSE]
@@ -160,9 +162,12 @@ ncaa_sync_type <- function(year, type, cfg, mode = cfg$mode %||% "incremental", 
         detail = result$detail
       )
       message(sprintf("  [%s] %s: %s", result$status, label, result$detail %||% ""))
+      if (identical(result$status, "access_denied")) {
+        Sys.sleep(denied_cooldown)
+      }
     }
 
-    if (i < nrow(all_teams)) Sys.sleep(0.15)
+    if (i < nrow(all_teams)) Sys.sleep(req_interval)
   }
 
   combined <- dplyr::bind_rows(rows)
@@ -246,6 +251,8 @@ ncaa_sync_daily <- function(config_path = NULL, mode = NULL, team_name = NULL, l
     bat_df <- NULL
 
     for (stat_type in cfg$types) {
+      # Fresh browser session per stat type lowers long-run NCAA blocking.
+      try(.ncaa_close_session(), silent = TRUE)
       result <- ncaa_sync_type(year, stat_type, cfg, cfg$mode, team_name, limit)
       rows <- result$rows
       if (stat_type == "pitching") pitch_df <- rows
