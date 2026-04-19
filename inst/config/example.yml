@@ -11,6 +11,8 @@ watch_list:
   - Example Team B
 max_wait_seconds: 8
 max_retries: 4
+access_denied_team_retries: 3
+access_denied_backoff_seconds: 12
 
 # Team stat engine (written to teams-YYYY.json)
 write_team_stats: true

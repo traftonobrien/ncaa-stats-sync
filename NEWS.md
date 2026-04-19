@@ -1,3 +1,10 @@
+# ncaaStatsSync 0.4.4
+
+## Fixed / reliability
+
+- Added targeted per-team retries for `access_denied` responses (`access_denied_team_retries`, `access_denied_backoff_seconds`) so transient NCAA blocks are retried with cooldown and fresh browser sessions.
+- Added workflow health gate in `.github/workflows/sync-ncaa-stats.yml` that fails runs when a required stat type (pitching/batting) has zero successful team fetches, preventing silent "green but unusable" outputs.
+
 # ncaaStatsSync 0.4.3
 
 ## Fixed / maintenance

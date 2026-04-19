@@ -12,6 +12,8 @@ ncaa_default_config <- function() {
     watch_list = character(0),
     max_wait_seconds = 8L,
     max_retries = 4L,
+    access_denied_team_retries = 3L,
+    access_denied_backoff_seconds = 12L,
     write_team_stats = TRUE,
     min_ip_qualified = 5,
     min_pa_qualified = 15,

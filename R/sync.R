@@ -21,13 +21,31 @@ ncaa_build_incremental_teams <- function(all_teams, out_dir, watch_list = charac
   all_teams[as.character(all_teams$team_id) %in% known_ids, , drop = FALSE]
 }
 
-.fetch_single_team_stats <- function(team_info, year, type, season_ids) {
+.fetch_single_team_stats <- function(team_info, year, type, season_ids, cfg) {
   team_id <- as.integer(team_info$team_id[[1]])
   team_name <- as.character(team_info$team_name[[1]])
   category_id <- ncaa_get_category_id(season_ids, year, type)
   url <- ncaa_stats_url(team_id, category_id)
 
-  fetch_result <- ncaa_fetch_page(url)
+  deny_retries <- as.integer(cfg$access_denied_team_retries %||% 3L)
+  deny_backoff <- as.numeric(cfg$access_denied_backoff_seconds %||% 12L)
+  fetch_result <- NULL
+  for (deny_attempt in seq_len(max(1L, deny_retries + 1L))) {
+    fetch_result <- ncaa_fetch_page(
+      url,
+      max_wait_seconds = cfg$max_wait_seconds %||% 8L,
+      max_retries = cfg$max_retries %||% 4L
+    )
+    if (!identical(fetch_result$status, "access_denied")) break
+    if (deny_attempt <= deny_retries) {
+      message(sprintf(
+        "  [access_denied] retrying %s after %.1fs (%d/%d)",
+        team_name, deny_backoff, deny_attempt, deny_retries
+      ))
+      try(.ncaa_close_session(), silent = TRUE)
+      Sys.sleep(deny_backoff * deny_attempt)
+    }
+  }
   if (!identical(fetch_result$status, "success")) {
     return(list(
       ok = FALSE,
@@ -118,7 +136,7 @@ ncaa_sync_type <- function(year, type, cfg, mode = cfg$mode %||% "incremental", 
     message(sprintf("[%s %s] %d/%d %s", year, type, i, nrow(all_teams), label))
 
     result <- tryCatch(
-      .fetch_single_team_stats(team_info, year, type, season_ids),
+      .fetch_single_team_stats(team_info, year, type, season_ids, cfg),
       error = function(e) list(
         ok = FALSE,
         status = "parse_failed",

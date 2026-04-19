@@ -46,6 +46,43 @@ jobs:
           cp inst/config/example.yml config.yml
           Rscript scripts/sync_ncaa_stats.R --config config.yml --mode "${{ github.event.inputs.mode || 'incremental' }}"
 
+      - name: Validate sync health
+        run: |
+          Rscript -e '
+            nz <- function(x, d = 0L) if (is.null(x)) d else x
+            m <- jsonlite::fromJSON("output/college-stats/meta.json", simplifyVector = FALSE)
+            required_types <- c("pitching", "batting")
+            years <- as.character(unlist(m$years))
+            hard_fail <- FALSE
+            for (y in years) {
+              for (t in required_types) {
+                key <- sprintf("%s-%s", y, t)
+                entry <- m$results[[key]]
+                if (is.null(entry)) {
+                  message(sprintf("FAIL: missing meta entry for %s", key))
+                  hard_fail <- TRUE
+                  next
+                }
+                oc <- if (is.null(entry$outcome_counts)) list() else entry$outcome_counts
+                success <- as.integer(nz(oc$success, 0L))
+                access_denied <- as.integer(nz(oc$access_denied, 0L))
+                parse_failed <- as.integer(nz(oc$parse_failed, 0L))
+                empty_stats <- as.integer(nz(oc$empty_stats, 0L))
+                total <- success + access_denied + parse_failed + empty_stats
+                deny_rate <- if (total > 0) access_denied / total else 1
+                message(sprintf(
+                  "Health %s: success=%d total=%d access_denied=%d (%.1f%%)",
+                  key, success, total, access_denied, 100 * deny_rate
+                ))
+                if (success < 1L) {
+                  message(sprintf("FAIL: %s has zero successful team fetches", key))
+                  hard_fail <- TRUE
+                }
+              }
+            }
+            if (isTRUE(hard_fail)) quit(status = 1L)
+          '
+
       - name: Commit output
         run: |
           git config user.name "github-actions[bot]"
